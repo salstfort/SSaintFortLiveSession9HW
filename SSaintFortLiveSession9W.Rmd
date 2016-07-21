@@ -1,0 +1,123 @@
+---
+title: "SSaintFortLiveSession9HW"
+author: "Salnave Saint-Fort"
+date: "July 20, 2016"
+output: html_document
+---
+
+## Salnave Saint-Fort
+## MSDC 6306 Doing Data Science - 404
+## Summer 2016
+## SSaintFortLiveSession9HW
+
+
+## Question 1
+
+## Installing fpp package 
+```{r loading ffp library}
+library(fpp)
+```
+## Code to load data
+```{r loading ukcars dataset}
+data(ukcars)
+```
+## Plot the time series. Can you identify seasonal fluctuations and/or a trend? 
+```{r}
+plot(ukcars, main  = "Plot of ukcars dataset.")
+```
+## Use a classical decomposition to calculate the trend-cycle and seasonal indices. 
+```{r}
+fitd <- decompose(ukcars)
+plot(fitd)
+```
+
+## Do the results support the graphical interpretation from part (a)? 
++ Answer:  Yes
+
+## Compute and plot the seasonally adjusted data. 
+```{r}
+eeadj <- seasadj(fitd)
+plot(eeadj, main = "Plot of Seasonally adjuted data")
+```
+
+## Change one observation to be an outlier (e.g., add 500 to one observation), and recompute the seasonally adjusted data. What is the effect of the outlier? 
+```{r}
+ukcars2 <- ts(c(ukcars[1:54],ukcars[55]+500,ukcars[56:113]),start=c(1978,1),frequency=12)
+plot(ukcars2, main= "Plot of ukcars with outlier near the middle of the dataset")
+
+ukcars3 <- ts(c(ukcars[1:110],ukcars[111]+500,ukcars[112:113]),start=c(1978,1),frequency=12)
+plot(ukcars3, main = "Plot of ukcars with outlier near the end of the dataset")
+```
+## Does it make any difference if the outlier is near the end rather than in the middle of the time series? 
++ Answer: Yes it makes a difference if the outlier is near the end rather than in the middle of the time series.
+
+##	Use STL to decompose the series.
+```{r}
+fit <- stl(ukcars, s.window=5)
+
+plot(fit, main = "Plot of Seasonal Trend Decomposition of ukcars dataset.")
+
+plot(ukcars, col="gray",
+     main="Plot of ukcars dataset with STL",
+     ylab="New orders index", xlab="")
+lines(fit$time.series[,2],col="red",ylab="Trend")
+```
+## Question 2
+
+##loading the tseries package
+```{r}
+library(tseries)
+```
+## Getting the historical data for my assigned Stock "PEN"
+```{r}
+SNPdata <- get.hist.quote('PEN',quote="Close")
+```
+
+##	Calculate log returns.
+```{r}
+SNPret <- log(lag(SNPdata)) - log(SNPdata)
+```
+## Calculate volatility measure
+```{r}
+SNPvol <- sd(SNPret) * sqrt(250) * 100
+SNPvol
+```
+## volatility 
+```{r}
+Vol <- function(d, logrets)
+{
+  
+  var = 0
+  
+  lam = 0
+  
+  varlist <- c()
+  
+  for (r in logrets) {
+    
+    lam = lam*(1 - 1/d) + 1
+    
+    var = (1 - 1/lam)*var + (1/lam)*r^2
+    
+    varlist <- c(varlist, var)
+    
+  }
+  
+  sqrt(varlist)
+}
+```
+
+## Calculate volatility measure with a continuous loopback window
+```{r}
+volest <- Vol(10,SNPret)
+
+volest2 <- Vol(30,SNPret)
+
+volest3 <- Vol(100,SNPret)
+
+plot(volest,type="l", main="Plot of volitility measure with continous loopback")
+
+lines(volest2,type="l",col="red")
+
+lines(volest3, type = "l", col="blue")
+```
